@@ -1,0 +1,37 @@
+project_name: aws-tgw-network-mgr
+builds:
+  - env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X github.com/nuage-lab/aws-tgw-network-mgr/cmd.version={{.Version}} -X github.com/nuage-lab/aws-tgw-network-mgr/cmd.commit={{.ShortCommit}} -X github.com/nuage-lab/aws-tgw-network-mgr/cmd.date={{.Date}}
+    goos:
+      - linux
+archives:
+  - replacements:
+      linux: Linux
+checksum:
+  name_template: checksums.txt
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
+nfpms:
+  - id: awsnuagenetwmgr
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    package_name: awsnuagenetwmgr
+    maintainer: Wim Henderickx <wim.henderickx@nokia.com>
+    description: |
+      awsnuagenetwmgr written in go
+    vendor: Nokia
+    license: GNU GPLv3
+    formats:
+      - rpm
+      - deb
+    bindir: /usr/bin
+    symlinks:
+      /usr/bin/awsnuagenmgr: /usr/bin/awsnuagenetwmgr

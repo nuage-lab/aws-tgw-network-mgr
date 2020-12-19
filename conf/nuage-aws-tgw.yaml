@@ -1,0 +1,37 @@
+name: NuageTestNetwork
+
+nuage:
+  enterprise: goPublic
+  url:  "https://195.207.5.78:8443"
+
+topology:
+  sites:
+    home1:
+      street: Sint Niklaasstraat
+      number: 28
+      city: Westerlo
+      state:
+      country: Belgium 
+  device-kinds:
+    sdwan:
+      vendor: nuage
+      model: e300
+  devices:
+    goE300WifiLTE:
+      kind: sdwan
+      serial: 0123456789
+#    nsg2:
+#      kind: sdwan
+#      serial: 0123456789
+    tgw-euc1:
+      kind: tgw
+      region: eu-central-1
+#    tgw-use1:
+#      kind: tgw
+#      region: us-east-1
+        
+  connections:
+    - endpoints: ["home1:goE300WifiLTE:port1", "tgw-euc1"]
+      labels: {"provider": "Telenet", "bwdown": "500", "bwup": "100", "kind": "broadband", "public-ip": "81.82.181.214", "asn": "65000", "cidr": "172.0.0.0/24"}
+    - endpoints: ["home1:goE300WifiLTE:lte0", "tgw-euc1"]
+      labels: {"provider": "Proximus", "bwdown": "200", "bwup": "50", "kind": "lte", "public-ip": "194.78.106.219", "asn": "65000", "cidr": "172.0.0.0/24"}
