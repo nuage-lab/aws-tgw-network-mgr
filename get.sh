@@ -3,8 +3,8 @@
 # The install script is based off of the Apache 2.0 script from Helm,
 # https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
 
-: ${BINARY_NAME:="awsnuagenetwmgr"}
-: ${PROJECT_NAME:="awsnuagenetwmgr"} # if project name does not match binary name
+: ${BINARY_NAME:="awstgwnetworkmgr"}
+: ${PROJECT_NAME:="awstgwnetworkmgr"} # if project name does not match binary name
 : ${USE_SUDO:="true"}
 : ${USE_PKG:="true"} # default --use-pkg flag value. will use package installation by default unless the default is changed to false
 : ${VERIFY_CHECKSUM:="false"}
