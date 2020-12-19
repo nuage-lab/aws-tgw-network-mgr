@@ -28,6 +28,7 @@ var rootCmd = &cobra.Command{
 	Use:   "nuage-aws-networkmgr",
 	Short: "Automates the connectivity of the aws network manager with nuage",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		/*
 		envAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 		envSecretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
 		envRegion := os.Getenv("AWS_DEFAULT_REGION")
@@ -66,6 +67,7 @@ var rootCmd = &cobra.Command{
 			log.Error("vpc required e.g. export AWS_VPC_NAME='eks-nokia-paco-vpc'")
 			os.Exit(1)
 		}
+		*/
 		if debug {
 			log.SetLevel(log.DebugLevel)
 		}
