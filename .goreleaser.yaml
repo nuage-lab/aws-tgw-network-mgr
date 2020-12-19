@@ -1,4 +1,4 @@
-project_name: aws-tgw-network-mgr
+project_name: awstgwnetworkmgr
 builds:
   - env:
       - CGO_ENABLED=0
