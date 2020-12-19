@@ -13,17 +13,11 @@ var deployCmd = &cobra.Command{
 	Aliases:      []string{"dep"},
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		log.Info("deploying a configuration ... ...")
-	Short:        "deploy a configuration",
-	Aliases:      []string{"dep"},
-	SilenceUsage: true,
-	RunE: func(cmd *cobra.Command, args []string) error {
 		log.Info("deploying nuage aws tgw network managmer configuration ...")
-		opts := []awstgwmgr.Option{
-			awstgwmgr.WithDebug(debug),
-			awstgwmgr.WithTimeout(timeout),
-			awstgwmgr.WithConfigFile(config),
-			//awstgwmgr.WithSecrets(&accessKey, &secretKey, &region),
+		opts := []awsnmgr.Option{
+			awsnmgr.WithDebug(debug),
+			awsnmgr.WithTimeout(timeout),
+			awsnmgr.WithConfigFile(config),
 		}
 
 		n, err := awsnmgr.NewAWsNMgrNuage(opts...)
