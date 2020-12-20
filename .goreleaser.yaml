@@ -1,4 +1,4 @@
-project_name: awstgwnetworkmgr
+project_name: awsnuagenetwmgr
 builds:
   - env:
       - CGO_ENABLED=0
