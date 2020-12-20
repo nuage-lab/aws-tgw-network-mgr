@@ -476,7 +476,7 @@ func (nm *NMgr) CreateAWSNetworkMgrSites() error {
 					return nil
 				}
 
-				for _, t := range r.TransitGateways {
+				for i, t := range r.TransitGateways {
 					if t.State == "deleted" || t.State == "deleting" {
 						// do nothing
 					} else {
@@ -484,9 +484,9 @@ func (nm *NMgr) CreateAWSNetworkMgrSites() error {
 						if t.State == "available" {
 							state = true
 						}
-						device.DeviceID = r.TransitGateways[0].TransitGatewayId
-						device.DeviceARN = r.TransitGateways[0].TransitGatewayArn
-						log.Debugf("Transit GW Id: %s", *r.TransitGateways[0].TransitGatewayId)
+						device.DeviceID = r.TransitGateways[i].TransitGatewayId
+						device.DeviceARN = r.TransitGateways[i].TransitGatewayArn
+						log.Debugf("Transit GW Id: %s", *r.TransitGateways[i].TransitGatewayId)
 					}
 				}
 				if !found {
