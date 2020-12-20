@@ -114,3 +114,24 @@ The deployment is handled in 2 steps:
 
 1. The deployment of the global network and the TGW(s) in AWS
 2. The deployment/configuration of the SD-WAN sites in Nuage and the TGW/CGW and VPN connections in AWS
+
+### deploy workflow
+
+First deploy the glocal network and tgws and after deploy the sites
+
+
+```
+awsnuagenetwmgr deploy tgw -c <config yaml file>
+
+awsnuagenetwmgr deploy sites -c <config yaml file>
+```
+
+### destroy workflow
+
+First destroy the sites and after destroy the tgw/global network
+
+```
+awsnuagenetwmgr destroy sites -c <config yaml file>
+
+awsnuagenetwmgr destroy tgw -c <config yaml file>
+```
