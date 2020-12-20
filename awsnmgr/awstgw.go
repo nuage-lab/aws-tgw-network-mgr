@@ -109,19 +109,24 @@ func createEC2Filter(tagKey, tagValue *string) (filters []types.Filter) {
 
 // CreateTransitGateway fucntion
 func (nm *NMgr) CreateTransitGateway(region, name *string) (*ec2.CreateTransitGatewayOutput, error) {
+	
 	r, err := nm.DescribeTransitGateways(region, name)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if len(r.TransitGateways) > 0 {
-		// TransitGateway exists
-		log.Infof("Transit Gateway exists")
-		o := &ec2.CreateTransitGatewayOutput{
-			TransitGateway: &r.TransitGateways[0],
+	for i, t := range r.TransitGateways {
+		if t.State == "deleted" || t.State == "deleting" {
+			
+		} else {
+			log.Infof("Transit Gateway exists")
+			o := &ec2.CreateTransitGatewayOutput{
+				TransitGateway: &r.TransitGateways[i],
+			}
+			return o, nil
 		}
-		return o, nil
 	}
+
 
 	tagKey := "Name"
 	tspecs := createEC2TagSpecs(&tagKey, name, types.ResourceTypeTransitGateway)

@@ -346,6 +346,14 @@ func (nm *NMgr) DeregisterTransitGateway(arn *string) (*networkmanager.Deregiste
 	return nm.ClientNMgr.DeregisterTransitGateway(nm.ctx, input)
 }
 
+// GetTransitGatewayRegistrations fucntion
+func (nm *NMgr) GetTransitGatewayRegistrations() (*networkmanager.GetTransitGatewayRegistrationsOutput, error) {
+	input := &networkmanager.GetTransitGatewayRegistrationsInput{
+		GlobalNetworkId:   nm.GlobalNetworkID,
+	}
+	return nm.ClientNMgr.GetTransitGatewayRegistrations(nm.ctx, input)
+}
+
 // AssociateCustomerGateway function
 func (nm *NMgr) AssociateCustomerGateway(cgwArn, dID, lID *string) (*networkmanager.AssociateCustomerGatewayOutput, error) {
 	input := &networkmanager.AssociateCustomerGatewayInput{

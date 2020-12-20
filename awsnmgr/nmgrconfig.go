@@ -28,7 +28,7 @@ type Config struct {
 
 // Aws related information
 type Aws struct {
-	Profile  string  `json:"profile,omitempty"`
+	Profile string `json:"profile,omitempty"`
 }
 
 // Nuage related information
@@ -345,22 +345,28 @@ func (nm *NMgr) DeleteAWSNetworkMgrNetwork() error {
 		for deviceName, device := range nm.Devices {
 			switch device.Kind {
 			case "tgw":
-				r, err := nm.DescribeTransitGateways(&device.Region, &deviceName)
+				r, err := nm.GetTransitGatewayRegistrations()
 				if err != nil {
-					log.Fatal(err)
+					log.Error(err)
 				}
-				for _, t := range r.TransitGateways {
+				for _, t := range r.TransitGatewayRegistrations {
 					log.Infof("Deregister Transit Gateway....")
 					_, err = nm.DeregisterTransitGateway(t.TransitGatewayArn)
 					if err != nil {
-						log.Fatal(err)
+						log.Error(err)
 					}
-					log.Infof("Delete Transit Gateway....")
+				}
+				log.Infof("Delete Transit Gateway....")
+				tgws, err := nm.DescribeTransitGateways(&device.Region, &deviceName)
+				if err != nil {
+					log.Error(err)
+				}
+				for _, t := range tgws.TransitGateways {
 					_, err = nm.DeleteTransitGateway(&device.Region, t.TransitGatewayId)
 					if err != nil {
 						log.Fatal(err)
 					}
-				}
+				}	
 			}
 		}
 		time.Sleep(30 * time.Second)
@@ -456,13 +462,45 @@ func (nm *NMgr) CreateAWSNetworkMgrSites() error {
 			}
 		case "tgw":
 			log.Infof("Find TGW: %s", deviceName)
-			r, err := nm.DescribeTransitGateways(&device.Region, &deviceName)
-			if err != nil {
-				log.Fatalf("Error create device: %s", err)
+
+			state := false
+			found := false
+			i := 1
+			for ok := true; ok; ok = !state {
+				r, err := nm.DescribeTransitGateways(&device.Region, &deviceName)
+				if err != nil {
+					log.Fatalf("Error create device: %s", err)
+				}
+				if len(r.TransitGateways) == 0 {
+					log.Errorf("No transit GWs found, first 'awsnuagenetwmgr run deploy tgw -c <confi-file'")
+					return nil
+				}
+
+				for _, t := range r.TransitGateways {
+					if t.State == "deleted" || t.State == "deleting" {
+						// do nothing
+					} else {
+						found = true
+						if t.State == "available" {
+							state = true
+						}
+						device.DeviceID = r.TransitGateways[0].TransitGatewayId
+						device.DeviceARN = r.TransitGateways[0].TransitGatewayArn
+						log.Debugf("Transit GW Id: %s", *r.TransitGateways[0].TransitGatewayId)
+					}
+				}
+				if !found {
+					log.Errorf("No transit GWs found, first 'awsnuagenetwmgr run deploy tgw -c <confi-file'")
+					return nil
+				}
+				if !state {
+					log.Infof("Wait a minute to check if all tgw are in available state, total (%d min)", i)
+					time.Sleep(60 * time.Second)
+					i++
+				}
+
 			}
-			log.Debugf("Transit GW Id: %s", *r.TransitGateways[0].TransitGatewayId)
-			device.DeviceID = r.TransitGateways[0].TransitGatewayId
-			device.DeviceARN = r.TransitGateways[0].TransitGatewayArn
+
 		}
 	}
 
@@ -551,7 +589,7 @@ func (nm *NMgr) CreateAWSNetworkMgrSites() error {
 		}
 	}
 
-	time.Sleep(30 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	for _, conn := range nm.Connections {
 		if conn.A.Device.Kind == "sdwan" {
