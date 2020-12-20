@@ -11,7 +11,7 @@ AWS TGW network manager is a tool that automates the connectivity of Nuage SD-WA
 awstgwnetwmgr can be installed using yum or apt package managers
 
 ```
-sudo yum install https://github.com/nuage-lab/aws-tgw-network-mgr/releases/download/v0.1.0/awstgwnetworkmgr_0.1.0_linux_386.rpm
+sudo yum install https://github.com/nuage-lab/aws-tgw-network-mgr/releases/download/v0.1.0/awsnuagenetwmgr_0.1.0_linux_386.rpm
 ```
 
 awstgwnetwmgr package can be installed using the installation script which detects the operating system type and installs the relevant package:
