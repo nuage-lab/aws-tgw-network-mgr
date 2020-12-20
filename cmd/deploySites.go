@@ -18,7 +18,6 @@ var deploySitesCmd = &cobra.Command{
 			awsnmgr.WithDebug(debug),
 			awsnmgr.WithTimeout(timeout),
 			awsnmgr.WithConfigFile(config),
-			//awstgwmgr.WithSecrets(&accessKey, &secretKey, &region),
 		}
 
 		nm, err := awsnmgr.NewAWsNMgrNuage(opts...)

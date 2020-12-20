@@ -132,15 +132,6 @@ func WithConfigFile(file string) Option {
 	}
 }
 
-// WithSecrets function
-// func WithSecrets(a, s, r *string) Option {
-// 	return func(tgw *Tgw) {
-// 		tgw.accessKey = a
-// 		tgw.secretKey = s
-// 		tgw.region = r
-// 	}
-// }
-
 // NewAWsNMgrNuage function defines a new dns-proxy
 func NewAWsNMgrNuage(opts ...Option) (*NMgr, error) {
 	nm := &NMgr{
@@ -152,62 +143,19 @@ func NewAWsNMgrNuage(opts ...Option) (*NMgr, error) {
 		o(nm)
 	}
 
-	//
+	if nm.Config.Aws.Profile == "" {
+		nm.Config.Aws.Profile = "default"
+	}
+
 	cfg, err := config.LoadDefaultConfig(
 		config.WithRegion("us-west-2"),
-		config.WithSharedConfigProfile("admin"))
+		config.WithSharedConfigProfile(nm.Config.Aws.Profile))
 	if err != nil {
 		panic("failed to load config, " + err.Error())
 	}
 
-	/*
-		svc := sts.NewFromConfig(cfg)
-
-		input := &sts.AssumeRoleInput{
-			RoleArn:         aws.String("arn:aws:iam::610303483713:role/assumeRoleAny"),
-			RoleSessionName: aws.String("testAssumeRoleSession"),
-		}
-
-		resp, err := svc.AssumeRole(context.Background(), input)
-		if err != nil {
-			if aerr, ok := err.(awserr.Error); ok {
-					fmt.Println(aerr.Error())
-			} else {
-				// Print the error, cast err to awserr.Error to get the Code and
-				// Message from an error.
-				fmt.Println(err.Error())
-			}
-			return nil, err
-		}
-		log.Infof("AssumeRole Output: %v", resp)
-
-		cred, err := cfg.Credentials.Retrieve(context.Background())
-		if err != nil {
-			panic("failed to get cred, " + err.Error())
-		}
-		log.Infof("Credentials: %v", cred)
-		//cfg, err := config.LoadDefaultConfig()
-	*/
-
-	/*
-		cfg, err := config.LoadDefaultConfig(
-			config.WithRegion("eu-central-1"),
-			config.WithSharedConfigProfile("admin"))
-		if err != nil {
-			panic("unable to load SDK config, " + err.Error())
-		}
-		log.Infof("Credentials: %v", cfg.Credentials)
-
-	*/
-
-	//opt := &networkmanager.Options{
-	//	Credentials: cfg.Credentials,
-	//}
-	//n.ClientNMgr = networkmanager.New(*opt)
-
 	nm.Region = &cfg.Region
 	nm.ClientNMgr = networkmanager.NewFromConfig(cfg)
-	//nm.ClientEC2 = ec2.NewFromConfig(cfg)
 
 	var s *bambou.Session
 	s, nm.VsdUsr = vspk.NewSession(vsdUser, vsdPass, vsdEnterprise, nm.Config.Nuage.URL)

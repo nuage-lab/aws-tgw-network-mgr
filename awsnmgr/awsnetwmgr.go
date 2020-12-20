@@ -66,7 +66,6 @@ func (nm *NMgr) CreateSite(name *string, s *Site) (*networkmanager.CreateSiteOut
 	if err != nil {
 		log.Fatal(err)
 	}
-	//if len(r.Sites) > 0 {
 	for idx, g := range r.Sites {
 		for i := 0; i < len(g.Tags); i++ {
 			if *g.Tags[i].Key == "Name" {
@@ -80,12 +79,9 @@ func (nm *NMgr) CreateSite(name *string, s *Site) (*networkmanager.CreateSiteOut
 			}
 		}
 	}
-	//}
 
 	tagKey := "Name"
 	tags := createNetwTags(&tagKey, name)
-
-	//geocoder.ApiKey = "AIzaSyAidw3kHSPrXe8EvQ_Jl-xAU-lDcPr7TiA"
 
 	address := geocoder.Address{
 		Street:  s.Street,
@@ -95,20 +91,9 @@ func (nm *NMgr) CreateSite(name *string, s *Site) (*networkmanager.CreateSiteOut
 		Country: s.Country,
 	}
 
-	// Convert address to location (latitude, longitude)
-	//l, err := geocoder.Geocoding(address)
-	//if err != nil {
-	//	log.Errorf("Could not get the location: %s", err)
-	//}
-
-	//lat := fmt.Sprintf("%f", l.Latitude)
-	//long := fmt.Sprintf("%f", l.Longitude)
-
 	a := address.Street + ", " + fmt.Sprintf("%d", address.Number) + ", " + address.City + ", " + address.State + ", " + address.Country
 	location := &types.Location{
 		Address: &a,
-		//Latitude:  &lat,
-		//Longitude: &long,
 	}
 
 	input := &networkmanager.CreateSiteInput{
@@ -153,7 +138,6 @@ func (nm *NMgr) CreateDevice(name *string, d *Device) (*networkmanager.CreateDev
 	if err != nil {
 		log.Fatal(err)
 	}
-	//if len(r.Devices) > 0 {
 	for idx, g := range r.Devices {
 		for i := 0; i < len(g.Tags); i++ {
 			if *g.Tags[i].Key == "Name" {
@@ -167,12 +151,9 @@ func (nm *NMgr) CreateDevice(name *string, d *Device) (*networkmanager.CreateDev
 			}
 		}
 	}
-	//}
 
 	tagKey := "Name"
 	tags := createNetwTags(&tagKey, name)
-
-	//geocoder.ApiKey = "AIzaSyAidw3kHSPrXe8EvQ_Jl-xAU-lDcPr7TiA"
 
 	address := geocoder.Address{
 		Street:  d.Site.Street,
@@ -182,20 +163,9 @@ func (nm *NMgr) CreateDevice(name *string, d *Device) (*networkmanager.CreateDev
 		Country: d.Site.Country,
 	}
 
-	// Convert address to location (latitude, longitude)
-	//l, err := geocoder.Geocoding(address)
-	//if err != nil {
-	//	log.Errorf("Could not get the location: %s", err)
-	//}
-
-	//lat := fmt.Sprintf("%f", l.Latitude)
-	//long := fmt.Sprintf("%f", l.Longitude)
-
 	a := address.Street + ", " + fmt.Sprintf("%d", address.Number) + ", " + address.City + ", " + address.State + ", " + address.Country
 	location := &types.Location{
 		Address:   &a,
-	//	Latitude:  &lat,
-	//	Longitude: &long,
 	}
 	model := d.Model
 	serial := d.Serial

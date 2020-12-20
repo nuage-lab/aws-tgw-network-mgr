@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -12,8 +11,6 @@ var destroyCmd = &cobra.Command{
 	Aliases:      []string{"des"},
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		log.Info("destroying a configuration ...")
-
 		return nil
 	},
 }

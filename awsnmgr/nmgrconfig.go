@@ -22,7 +22,13 @@ var kinds = []string{"sdwan", "tgw"}
 type Config struct {
 	Name     string   `json:"name,omitempty"`
 	Nuage    Nuage    `json:"nuage,omitempty"`
+	Aws      Aws      `json:"aws,omitempty"`
 	Topology Topology `json:"topology,omitempty"`
+}
+
+// Aws related information
+type Aws struct {
+	Profile  string  `json:"profile,omitempty"`
 }
 
 // Nuage related information
@@ -377,20 +383,20 @@ func (nm *NMgr) CreateAWSNetworkMgrSites() error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Infof("Global Network Id: %v", *respNetw.GlobalNetwork.GlobalNetworkId)
+	log.Debugf("Global Network Id: %v", *respNetw.GlobalNetwork.GlobalNetworkId)
 	nm.GlobalNetworkID = respNetw.GlobalNetwork.GlobalNetworkId
 
 	enterprise := nm.getEnterprise(nm.Config.Nuage.Enterprise)
 	if enterprise == nil {
 		log.Errorf("Enterprise does not exist : %s", nm.Config.Nuage.Enterprise)
 	}
-	log.Info("Enterprise ID : &s", enterprise.ID)
+	log.Debugf("Enterprise ID : %v", enterprise.ID)
 
 	ikePSK := nm.createIKEPSK("AWS-"+nm.Config.Name+"PSK", enterprise)
-	log.Infof("ikePSK: %v", ikePSK.ID)
+	log.Debugf("ikePSK: %v", ikePSK.ID)
 
 	ikeEncryptionProfile := nm.createIKEEncryptionprofile("AWS-"+nm.Config.Name, enterprise)
-	log.Infof("ikeEncryptionProfile: %v", ikeEncryptionProfile)
+	log.Debugf("ikeEncryptionProfile: %v", ikeEncryptionProfile)
 
 	for siteName, site := range nm.Sites {
 		log.Infof("Create Site: %s", siteName)
@@ -398,7 +404,7 @@ func (nm *NMgr) CreateAWSNetworkMgrSites() error {
 		if err != nil {
 			log.Fatalf("Error create site: %s", err)
 		}
-		log.Infof("Site Id: %v", *r.Site.SiteId)
+		log.Debugf("Site Id: %v", *r.Site.SiteId)
 		site.SiteID = r.Site.SiteId
 	}
 
@@ -411,14 +417,14 @@ func (nm *NMgr) CreateAWSNetworkMgrSites() error {
 			if nsGateway == nil {
 				log.Errorf("Nuage NSG device does not exist: %s", deviceName)
 			}
-			log.Infof("Nuage NSG ID: %s", nsGateway.ID)
+			log.Debugf("Nuage NSG ID: %s", nsGateway.ID)
 			device.NuageNSGateway = nsGateway
 
 			r, err := nm.CreateDevice(&deviceName, device)
 			if err != nil {
 				log.Fatalf("Error create device: %s", err)
 			}
-			log.Infof("Device Id: %v", *r.Device.DeviceId)
+			log.Debugf("Device Id: %v", *r.Device.DeviceId)
 			device.DeviceID = r.Device.DeviceId
 			device.DeviceARN = r.Device.DeviceArn
 			for epName, ep := range device.Endpoints {
@@ -427,21 +433,21 @@ func (nm *NMgr) CreateAWSNetworkMgrSites() error {
 				if nsgPort == nil {
 					log.Errorf("Nuage NSG port does not exist: %s", epName)
 				}
-				log.Infof("Nuage PORT: %s", nsgPort.ID)
+				log.Debugf("Nuage PORT: %s", nsgPort.ID)
 				ep.NuagePort = nsgPort
 
 				nsVlan := nm.getVlan(0, nsgPort)
 				if nsVlan == nil {
 					log.Errorf("Nuage NSG vlan does not exist: 0")
 				}
-				log.Infof("Nuage VLAN: %s", nsVlan.ID)
+				log.Debugf("Nuage VLAN: %s", nsVlan.ID)
 				ep.NuageVlan = nsVlan
 
 				r, err := nm.CreateLink(&epName, ep)
 				if err != nil {
 					log.Fatalf("Error create link: %s", err)
 				}
-				log.Infof("Link Id: %v", *r.Link.LinkId)
+				log.Debugf("Link Id: %v", *r.Link.LinkId)
 				ep.LinkID = r.Link.LinkId
 				_, err = nm.AssociateLink(device.DeviceID, ep.LinkID)
 				if err != nil {
@@ -454,7 +460,7 @@ func (nm *NMgr) CreateAWSNetworkMgrSites() error {
 			if err != nil {
 				log.Fatalf("Error create device: %s", err)
 			}
-			log.Infof("Transit GW Id: %s", *r.TransitGateways[0].TransitGatewayId)
+			log.Debugf("Transit GW Id: %s", *r.TransitGateways[0].TransitGatewayId)
 			device.DeviceID = r.TransitGateways[0].TransitGatewayId
 			device.DeviceARN = r.TransitGateways[0].TransitGatewayArn
 		}
@@ -479,30 +485,26 @@ func (nm *NMgr) CreateAWSNetworkMgrSites() error {
 					vpnConn := VpnConnection{}
 					xml.Unmarshal([]byte(*r.VpnConnection.CustomerGatewayConfiguration), &vpnConn)
 					for i, ipsec := range vpnConn.IpsecTunnel {
-						log.Infof("VPN IP address : %s", ipsec.VpnGateway.TunnelOutsideAddress.IPAddress)
+						log.Debugf("VPN IP address : %s", ipsec.VpnGateway.TunnelOutsideAddress.IPAddress)
 						conn.A.CustomerGatewayIP = append(conn.A.CustomerGatewayIP, ipsec.VpnGateway.TunnelOutsideAddress.IPAddress)
 
 						ikeGatewayCfg := nm.createIKEGateway("TGWCGW"+conn.A.Region+conn.A.Device.Name+conn.A.Name+strconv.Itoa(i), "V1", ipsec.VpnGateway.TunnelOutsideAddress.IPAddress, enterprise)
-						log.Infof("ikeGatewayCfg: %v", ikeGatewayCfg)
+						log.Debugf("ikeGatewayCfg: %v", ikeGatewayCfg)
 
 						ikeGatewayProfile := nm.createIKEGatewayProfile("TGWCGW"+conn.A.Region+conn.A.Device.Name+conn.A.Name+strconv.Itoa(i), ikePSK.ID, ipsec.VpnGateway.TunnelOutsideAddress.IPAddress, ikeGatewayCfg.ID, ikeEncryptionProfile.ID, enterprise)
-						log.Infof("ikeGatewayProfile: %v", ikeGatewayProfile)
+						log.Debugf("ikeGatewayProfile: %v", ikeGatewayProfile)
 
 						ikeGatewayconn := nm.createIKEGatewayConnection("TGWCGW"+conn.A.Region+conn.A.Device.Name+conn.A.Name+strconv.Itoa(i), conn.A.Device.Name, ikeGatewayProfile.ID, ikePSK.ID, conn.A.NuageVlan)
-						log.Infof("ikeGatewayconn: %v", ikeGatewayconn)
+						log.Debugf("ikeGatewayconn: %v", ikeGatewayconn)
 					}
 				}
-				log.Infof("Customer Gateway Id: %v", *r.CustomerGateway.CustomerGatewayId)
+				log.Debugf("Customer Gateway Id: %v", *r.CustomerGateway.CustomerGatewayId)
 				CustomerGatewayArn := "arn:aws:ec2:" + conn.A.Region + ":610303483713:customer-gateway/" + *r.CustomerGateway.CustomerGatewayId
 				conn.A.CustomerGatewayID = r.CustomerGateway.CustomerGatewayId
 				conn.A.VPNConnState = "not available"
 				conn.A.CustomerGatewayARN = &CustomerGatewayArn
-				log.Infof("Customer Gateway ARN: %v", CustomerGatewayArn)
+				log.Debugf("Customer Gateway ARN: %v", CustomerGatewayArn)
 
-				//_, err = nm.AssociateCustomerGateway(&CustomerGatewayArn, conn.A.Device.DeviceID, conn.A.LinkID)
-				//if err != nil {
-				//	log.Fatalf("Error associate customer gateway: %s", err)
-				//}
 			}
 		}
 	}
@@ -512,7 +514,7 @@ func (nm *NMgr) CreateAWSNetworkMgrSites() error {
 	i := 0
 	for ok := true; ok; ok = !state {
 		i++
-		log.Infof("Wait another minute to check if all gw are in available state, total (%d min)", i)
+		log.Infof("Wait a minute to check if all gw are in available state, total (%d min)", i)
 		time.Sleep(60 * time.Second)
 		for _, conn := range nm.Connections {
 			if conn.A.Device.Kind == "sdwan" {
@@ -575,14 +577,14 @@ func (nm *NMgr) DeleteAWSNetworkMgrSites() error {
 	if enterprise == nil {
 		log.Errorf("Enterprise does not exist : %s", nm.Config.Nuage.Enterprise)
 	}
-	log.Info("Enterprise ID : &s", enterprise.ID)
+	log.Debugf("Enterprise ID : %v", enterprise.ID)
 
 	//if len(r.GlobalNetworks) > 0 {
 	for idx, g := range r.GlobalNetworks {
 		for i := 0; i < len(g.Tags); i++ {
 			if *g.Tags[i].Key == "Name" {
 				if *g.Tags[i].Value == nm.Config.Name {
-					log.Infof("Global Network found")
+					log.Debugf("Global Network found")
 					nm.GlobalNetworkID = r.GlobalNetworks[idx].GlobalNetworkId
 				}
 			}
@@ -613,17 +615,17 @@ func (nm *NMgr) DeleteAWSNetworkMgrSites() error {
 								for i := 0; i < len(da.Tags); i++ {
 									for _, d := range nm.Devices {
 										if *da.Tags[i].Value == d.Name {
-											log.Infof("Device exists")
+											log.Debugf("Device exists")
 											d.Site = s
 											d.DeviceID = da.DeviceId
 											d.DeviceARN = da.DeviceArn
 										}
 										for _, la := range l.Links {
-											log.Infof("AWS LINK INFO: %s, %s", *la.LinkId, *la.Description)
+											log.Debugf("AWS LINK INFO: %s, %s", *la.LinkId, *la.Description)
 											for i := 0; i < len(la.Tags); i++ {
 												for n, ep := range d.Endpoints {
 													if *la.Tags[i].Value == n {
-														log.Infof("Link exists on device")
+														log.Debugf("Link exists on device")
 														ep.LinkID = la.LinkId
 														ep.LinkARN = la.LinkArn
 
@@ -641,7 +643,7 @@ func (nm *NMgr) DeleteAWSNetworkMgrSites() error {
 		}
 		rc, err := nm.GetCustomerGatewayAssociations()
 		for _, c := range rc.CustomerGatewayAssociations {
-			log.Infof("Customer gateway Association: %s, %s, %s", *c.CustomerGatewayArn, *c.DeviceId, *c.LinkId)
+			log.Infof("Customer gateway DisAssociation: %s, %s, %s", *c.CustomerGatewayArn, *c.DeviceId, *c.LinkId)
 			_, err := nm.DisassociateCustomerGateway(c.CustomerGatewayArn, c.DeviceId, c.LinkId)
 			if err != nil {
 				log.Error(err)
@@ -650,31 +652,31 @@ func (nm *NMgr) DeleteAWSNetworkMgrSites() error {
 		log.Infof("Disassociating  Links....")
 		for deviceName, d := range nm.Devices {
 			if d.DeviceID != nil && d.Site.SiteID != nil {
-				log.Infof("Device Name: %s, %s, %s", d.Name, *d.DeviceID, *d.Site.SiteID)
+				log.Debugf("Device Name: %s, %s, %s", d.Name, *d.DeviceID, *d.Site.SiteID)
 
 				nsGateway := nm.getNsg(deviceName, enterprise)
 				if nsGateway == nil {
 					log.Errorf("Nuage NSG device does not exist: %s", deviceName)
 				}
-				log.Infof("Nuage NSG ID: %s", nsGateway.ID)
+				log.Debugf("Nuage NSG ID: %s", nsGateway.ID)
 				d.NuageNSGateway = nsGateway
 
 				for epName, ep := range d.Endpoints {
 					if ep.LinkID != nil {
-						log.Infof("Link Name: %s, %s", ep.Name, *ep.LinkID)
+						log.Debugf("Link Name: %s, %s", ep.Name, *ep.LinkID)
 
 						nsgPort := nm.getNetworkPort(epName, nsGateway)
 						if nsgPort == nil {
 							log.Errorf("Nuage NSG port does not exist: %s", epName)
 						}
-						log.Infof("Nuage PORT: %s", nsgPort.ID)
+						log.Debugf("Nuage PORT: %s", nsgPort.ID)
 						ep.NuagePort = nsgPort
 
 						nsVlan := nm.getVlan(0, nsgPort)
 						if nsVlan == nil {
 							log.Errorf("Nuage NSG vlan does not exist: 0")
 						}
-						log.Infof("Nuage VLAN: %s", nsVlan.ID)
+						log.Debugf("Nuage VLAN: %s", nsVlan.ID)
 						ep.NuageVlan = nsVlan
 
 						if _, err := nm.DisassociateLink(d.DeviceID, ep.LinkID); err != nil {
@@ -683,7 +685,7 @@ func (nm *NMgr) DeleteAWSNetworkMgrSites() error {
 					}
 				}
 			} else {
-				log.Infof("Device Name: %s", d.Name)
+				log.Debugf("Device Name: %s", d.Name)
 			}
 		}
 
@@ -717,12 +719,12 @@ func (nm *NMgr) DeleteAWSNetworkMgrSites() error {
 							for i := 0; i < 2; i++ {
 								err = nm.deleteIKEGatewayConnection("TGWCGW"+conn.A.Region+conn.A.Device.Name+conn.A.Name+strconv.Itoa(i), conn.A.NuageVlan)
 								if err != nil {
-									log.Infof("delete deleteIKEGatewayConnection error: %v", err)
+									log.Errorf("delete deleteIKEGatewayConnection error: %v", err)
 								}
 
 								err = nm.deleteIKEGatewayProfile("TGWCGW"+conn.A.Region+conn.A.Device.Name+conn.A.Name+strconv.Itoa(i), enterprise)
 								if err != nil {
-									log.Infof("delete ikeGatewayProfile error: %v", err)
+									log.Errorf("delete ikeGatewayProfile error: %v", err)
 								}
 
 								err = nm.deleteIKEGateway("TGWCGW"+conn.A.Region+conn.A.Device.Name+conn.A.Name+strconv.Itoa(i), enterprise)

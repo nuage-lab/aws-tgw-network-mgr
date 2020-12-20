@@ -1,5 +1,8 @@
 name: NuageTestNetwork
 
+#aws:
+#  profile: admin
+
 nuage:
   enterprise: goPublic
   url:  "https://195.207.5.78:8443"
